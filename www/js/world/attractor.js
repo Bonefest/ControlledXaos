@@ -1,66 +1,100 @@
-class ChaosAttractor
+import * as THREE from '../vendor/three.js';
+// TODO: class PolynomN - attractor, which allows to use polynoms on any order
+class HenonAttractor
 {
-    onCreated(gui) { }
-    onRemoved(gui) { }
-    generateWeights() { }
-    generateState(ps) { }
-    getName() { return "unknown"; }
-};
-
-class Polynom6 extends ChaosAttractor
-{
-    onCreated(gui)
+    init(gui)
     {
-        this.generateWeights();
-
-        const params =
-        {
-            a : this.a,
-            b : this.b,
-            c : this.c,
-            d : this.d,
-            e : this.e,
-            f : this.f
-        };
-        
-        this.folder = gui.addFolder({ 'title': 'Polynom6 settings'});
-        this.folder.addInput(params, 'a', {min : -5.0, max : 5.0});
-        this.folder.addInput(params, 'b', {min : -5.0, max : 5.0});
-        this.folder.addInput(params, 'c', {min : -5.0, max : 5.0});
-        this.folder.addInput(params, 'd', {min : -5.0, max : 5.0});
-        this.folder.addInput(params, 'e', {min : -5.0, max : 5.0});
-        this.folder.addInput(params, 'f', {min : -5.0, max : 5.0});        
+        this.folder = gui.addFolder({ 'title': 'Henon attractor settings'});
     }
 
-    onRemoved(gui)
+    clear(gui)
     {
         gui.remove(this.folder);
     }
     
     generateWeights()
     {
-        // this.a = THREE.MathUtils.randFloat(-5.0, 5.0);
-        // this.b = THREE.MathUtils.randFloat(-5.0, 5.0);
-        // this.c = THREE.MathUtils.randFloat(-5.0, 5.0);
-        // this.d = THREE.MathUtils.randFloat(-5.0, 5.0);
-        // this.e = THREE.MathUtils.randFloat(-5.0, 5.0);
-        // this.f = THREE.MathUtils.randFloat(-5.0, 5.0);
 
-        this.a = -1.4;
-        this.c = 0.3;
-        this.f = 1.0;
-        this.b = 1.0;
-        this.d = 0.0;
-        this.e = 0.0;
     }
     
     generateState(ps)
     {
-        return new THREE.Vector3(this.a * ps.x * ps.x + this.b + this.c * ps.y,
-                                 this.d * ps.y * ps.y + this.e + this.f * ps.x);
+        return new THREE.Vector3(1 + -1.4 * ps.x * ps.x + 0.3 * ps.y, ps.x, 0.0);
     }
     
-    getName() { return "Polynom6Attractor"; }    
+    static getName() { return "Henon Attractor"; }    
 };
 
-export { ChaosAttractor, Polynom6 };
+class Polynom2Attractor
+{
+    init(gui)
+    {
+        this.generateWeights();
+        
+        this.folder = gui.addFolder({ 'title': 'Polynom2 attractor settings'});
+        this.folder.addInput(this, 'a1', {min: -2.0, max: 2.0});
+    }
+
+    clear(gui)
+    {
+        gui.remove(this.folder);
+    }
+    
+    generateWeights()
+    {
+        for(let i = 1; i < 13; i++)
+        {
+            this['a' + i] = THREE.MathUtils.randFloat(-2.0, 2.0);
+        }
+    }
+    
+    generateState(ps)
+    {
+        return new THREE.Vector3(this.a1 + this.a2 * ps.x + this.a3 * ps.x * ps.x + this.a4 * ps.x * ps.y + this.a5 * ps.y + this.a6 * ps.y * ps.y,
+                                 this.a7 + this.a8 * ps.x + this.a9 * ps.x * ps.x + this.a10 * ps.x * ps.y + this.a11 * ps.y + this.a12 * ps.y * ps.y,
+                                 0);
+    }
+    
+    static getName() { return "Polynom2 Attractor"; }    
+};
+
+export function calculateLyapunovExponent(attractor)
+{
+    const PreparationSteps = 500;
+    const CalculationSteps = 10000;
+    
+    let state0 = new THREE.Vector3(0, 0, 0);
+    for(let i = 0; i < PreparationSteps; i++)
+    {
+        state0 = attractor.generateState(state0);
+    }
+    
+    let state1 = state0.clone().add(new THREE.Vector3(0.001, 0.001, 0));
+
+    let d0Sep = 0.0001;
+    let L = 0;
+    for(let i = 0; i < CalculationSteps; i++)
+    {
+        state0 = attractor.generateState(state0); // Move first orbit
+        state1 = attractor.generateState(state1); // Move second orbit
+
+        let sepDir = state1.clone()                // Calculate separation vector from 1st orbit to the 2nd
+        sepDir.sub(state0);
+        
+        let d1Sep = sepDir.length();               // Calculate separation length
+        sepDir.multiplyScalar(d0Sep / d1Sep);      // Normalize, then multiply by length of previous sep
+        state0.add(sepDir);                        // Readjust first orbit, so its separation length
+                                                   // is equal to previous separation
+        
+        L += Math.log2(d1Sep / d0Sep);
+    }
+
+    return L / CalculationSteps;
+}
+
+const AttractorsPrototypes = [
+    HenonAttractor,
+    Polynom2Attractor
+];
+
+export { AttractorsPrototypes };

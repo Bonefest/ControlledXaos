@@ -2,19 +2,53 @@
 <html>
 	<head>
 		<meta charset="utf-8">
-		<title>Controlled Chaos</title>
+		<title>Controlled Xaos</title>
 		<style>
 			body { margin: 0; }
 		</style>
 
         <script src="https://cdn.jsdelivr.net/npm/tweakpane@3.0.7/dist/tweakpane.min.js"></script>
-        <script type="module" src="js/vendor/three.js"></script>        
+
+        <script type="module" src="js/vendor/three.js"></script>
         <script type="module" src="js/src/main.js"></script>
 	</head>
     
 	<body>
-      <div id="scene-container">
+      <script type="x-shader/x-vertex" id = "particlesVertexShader">
+
+        varying vec3 particleColor;
+        varying float particleSize;
         
+        void main()
+        {
+            vec3 d = (position / 10.0) * 0.5 + 0.5;
+            particleColor = mix(vec3(1.0, 0.0, 0.0), vec3(0.0, 1.0, 0.0), d);
+            
+            vec4 camSpacePos = modelViewMatrix * vec4(position, 1.0);
+            gl_PointSize = (300.0 / -camSpacePos.z);
+            particleSize = gl_PointSize;
+            gl_Position = projectionMatrix * camSpacePos;
+        }
+        
+      </script>
+
+      <script type="x-shader/x-fragment" id = "particlesFragmentShader">
+
+        varying vec3 particleColor;
+        varying float particleSize;
+
+        uniform float time;
+        
+        void main()
+        {
+            vec2 pointNDCPos = gl_PointCoord * 2.0 - 1.0;
+            float distance = clamp((1.0 - sqrt(dot(pointNDCPos, pointNDCPos))) * abs(cos(time)), 0.0, 1.0);
+            gl_FragColor = vec4(particleColor, distance * distance);
+        }
+        
+      </script>      
+      
+      <div id="scene-container">
       </div>
 	</body>
 </html>

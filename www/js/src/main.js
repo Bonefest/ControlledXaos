@@ -1,3 +1,4 @@
+
 import { World } from '../world/world.js'
 
 function main()
