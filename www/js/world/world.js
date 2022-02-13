@@ -58,7 +58,7 @@ class World
         const regenerateBtn = attractorsFolder.addButton({title: 'Regenerate'});
         regenerateBtn.on('click', () =>
         {
-            const MaxAttempts = 10000;
+            const MaxAttempts = 1000;
                 
             for(let i = 0; i < MaxAttempts; i++)
             {

@@ -25,14 +25,17 @@ class HenonAttractor
     static getName() { return "Henon Attractor"; }    
 };
 
-class Polynom2Attractor
+class PlaneAttractor
 {
     init(gui)
     {
         this.generateWeights();
         
-        this.folder = gui.addFolder({ 'title': 'Polynom2 attractor settings'});
-        this.folder.addInput(this, 'a1', {min: -2.0, max: 2.0});
+        this.folder = gui.addFolder({ 'title': 'Plane attractor settings'});
+        for(let i = 1; i < 13; i++)
+        {
+            this.folder.addInput(this, 'a' + i, {min: -2.0, max: 2.0});
+        }
     }
 
     clear(gui)
@@ -42,7 +45,7 @@ class Polynom2Attractor
     
     generateWeights()
     {
-        for(let i = 1; i < 13; i++)
+        for(let i = 0; i < 13; i++)
         {
             this['a' + i] = THREE.MathUtils.randFloat(-2.0, 2.0);
         }
@@ -55,13 +58,92 @@ class Polynom2Attractor
                                  0);
     }
     
-    static getName() { return "Polynom2 Attractor"; }    
+    static getName() { return "Plane Attractor"; }    
 };
+
+function createPolynomNAttractor(order)
+{
+    return class
+    {
+        init(gui)
+        {
+            this.generateWeights();
+            
+            this.folder = gui.addFolder({ 'title' : 'Polynom' + order +' attractor settings'});
+            
+            let coeffsCount = this.getCoeffsCount();
+            for(let i = 0; i < coeffsCount; i++)
+            {
+                this.folder.addInput(this, 'a' + i, {min: -1.5, max: 1.5});
+            }
+        }
+
+        clear(gui)
+        {
+            gui.remove(this.folder);
+        }
+        
+        generateWeights()
+        {
+            let coeffsCount = this.getCoeffsCount();
+            
+            for(let i = 0; i < coeffsCount; i++)
+            {
+                this['a' + i] = THREE.MathUtils.randFloat(-1.5, 1.5);
+            }
+        }
+
+        getCoeffsCount()
+        {
+            return (((order + 1) * (order + 2) * (order + 3)) / 2);
+        }
+
+        generateState(ps)
+        {
+            let ns = new THREE.Vector3(0, 0, 0);
+            
+            let coeffIdx = 0;
+            for(let zp = 0; zp < order; zp++)
+            {
+                let z = Math.pow(ps.z, zp);
+                for(let yp = 0; yp <= order - zp; yp++)
+                {
+                    let y = Math.pow(ps.y, yp);
+                    for(let xp = 0; xp <= order - yp - zp; xp++)
+                    {
+                        let x = Math.pow(ps.x, xp);
+                        let xyz = x * y * z;
+                        
+                        ns.x += this['a' + coeffIdx] * xyz;
+                        ns.y += this['a' + (coeffIdx + 1)] * xyz;
+                        ns.z += this['a' + (coeffIdx + 2)] * xyz;
+                        
+                        coeffIdx += 3;
+                    }
+                }
+            }
+
+            return ns;
+        }
+        
+        static getName() { return "Polynom" + order + " Attractor"; }
+    };
+
+}
+
+
+let Polynom2Attractor = createPolynomNAttractor(2);
+let Polynom3Attractor = createPolynomNAttractor(3);
+let Polynom4Attractor = createPolynomNAttractor(4);
+let Polynom5Attractor = createPolynomNAttractor(5);
+let Polynom6Attractor = createPolynomNAttractor(6);
+let Polynom7Attractor = createPolynomNAttractor(7);
+
 
 export function calculateLyapunovExponent(attractor)
 {
     const PreparationSteps = 500;
-    const CalculationSteps = 10000;
+    const CalculationSteps = 1000;
     
     let state0 = new THREE.Vector3(0, 0, 0);
     for(let i = 0; i < PreparationSteps; i++)
@@ -69,7 +151,7 @@ export function calculateLyapunovExponent(attractor)
         state0 = attractor.generateState(state0);
     }
     
-    let state1 = state0.clone().add(new THREE.Vector3(0.001, 0.001, 0));
+    let state1 = state0.clone().add(new THREE.Vector3(0.001, 0.001, 0.0));
 
     let d0Sep = 0.0001;
     let L = 0;
@@ -94,7 +176,13 @@ export function calculateLyapunovExponent(attractor)
 
 const AttractorsPrototypes = [
     HenonAttractor,
-    Polynom2Attractor
+    PlaneAttractor,
+    Polynom2Attractor,
+    Polynom3Attractor,    
+    Polynom4Attractor,
+    Polynom5Attractor,
+    Polynom6Attractor,
+    Polynom7Attractor,        
 ];
 
 export { AttractorsPrototypes };
