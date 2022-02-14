@@ -21,15 +21,15 @@ class World
         this.render = this.render.bind(this);
         
         renderer = new THREE.WebGLRenderer();
-        renderer.setSize(window.innerWidth, window.innerHeight);
+        renderer.setSize(container.clientWidth, container.clientHeight);
         container.append(renderer.domElement);
     }
 
-    initSceneElements()
+    initSceneElements(container)
     {
         scene = new THREE.Scene();
         
-        camera = new THREE.PerspectiveCamera(45, window.innerWidth / window.innerHeight, 0.1, 1000);
+        camera = new THREE.PerspectiveCamera(45, container.clientWidth / container.clientHeight, 0.1, 1000);
         camera.position.z = 15;
 
         controls = new OrbitControls(camera, renderer.domElement);
@@ -58,7 +58,7 @@ class World
         const regenerateBtn = attractorsFolder.addButton({title: 'Regenerate'});
         regenerateBtn.on('click', () =>
         {
-            const MaxAttempts = 1000;
+            const MaxAttempts = 10000;
                 
             for(let i = 0; i < MaxAttempts; i++)
             {
@@ -92,7 +92,7 @@ class World
     constructor(container)
     {
         this.initRenderer(container);
-        this.initSceneElements();
+        this.initSceneElements(container);
         this.initGUI();
 
         currentAttractor = new attractors.AttractorsPrototypes[0];

@@ -160,6 +160,13 @@ export function calculateLyapunovExponent(attractor)
         state0 = attractor.generateState(state0); // Move first orbit
         state1 = attractor.generateState(state1); // Move second orbit
 
+        const limit = 2;
+        
+        if(i > 100 && (Math.abs(state0.x) > limit || Math.abs(state0.y) > limit || Math.abs(state0.z) > limit || Math.abs(state1.x) > limit || Math.abs(state1.y) > limit || Math.abs(state1.z) > limit))
+        {
+            return -1.0;
+        }
+        
         let sepDir = state1.clone()                // Calculate separation vector from 1st orbit to the 2nd
         sepDir.sub(state0);
         
