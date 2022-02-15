@@ -41,6 +41,7 @@ class World
     initGUI()
     {
         GUI = new Tweakpane.Pane();
+        GUI.hidden = true;
         const visualizationFolder = GUI.addFolder({'title': 'Visualization settings'});
         visualizationFolder.addInput(pointsMultiplier, 'x', { min: 0.01, max: 100.0 });
         visualizationFolder.addInput(pointsMultiplier, 'y', { min: 0.01, max: 100.0 });
