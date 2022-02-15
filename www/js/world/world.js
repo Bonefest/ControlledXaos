@@ -1,5 +1,7 @@
 import * as THREE from '../vendor/three.js';
 import * as attractors from './attractor.js';
+import { GeneralScreen } from './general_screen.js';
+import { AttractorScreen } from './attractor_screen.js';
 
 import { OrbitControls } from '../vendor/OrbitControls.js';
 
@@ -40,6 +42,11 @@ class World
 
     initGUI()
     {
+        this['general'] = new GeneralScreen(this);
+        // this['popular'] = new PopularScreen(this);
+        // this['favourites'] = new Favourites(this);
+        this['attractor'] = new AttractorScreen(this);        
+        
         GUI = new Tweakpane.Pane();
         GUI.hidden = true;
         const visualizationFolder = GUI.addFolder({'title': 'Visualization settings'});

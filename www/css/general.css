@@ -1,0 +1,10 @@
+.standard-list-item
+{
+    background-color: rgba(32, 32, 32, 0.2);
+}
+
+.standard-list-header
+{
+    background-color: rgba(32, 32, 32, 0.2);
+    text-color: white;
+}
