@@ -58,25 +58,9 @@ class World
         // this['popular'] = new PopularScreen(this);
         // this['favourites'] = new Favourites(this);
         this['attractor'] = new AttractorScreen(this);        
-        
-        GUI = new Tweakpane.Pane();
-        GUI.hidden = true;
-        const visualizationFolder = GUI.addFolder({'title': 'Visualization settings'});
-        visualizationFolder.addInput(pointsMultiplier, 'x', { min: 0.01, max: 100.0 });
-        visualizationFolder.addInput(pointsMultiplier, 'y', { min: 0.01, max: 100.0 });
-        visualizationFolder.addInput(pointsMultiplier, 'z', { min: 0.01, max: 100.0 });
-        visualizationFolder.addInput(pointsBufferSize, 'BufferSize', { min: 100, max: 50000});
-        
-        const attractorsFolder = GUI.addFolder({'title': 'Attractors list'});
 
-        const restartBtn = attractorsFolder.addButton({title: 'Restart'});
-        restartBtn.on('click', () =>
-        {
-            this.regenerateAttractor();
-        });
-
-        const regenerateBtn = attractorsFolder.addButton({title: 'Regenerate'});
-        regenerateBtn.on('click', () =>
+        let restartBtn = document.getElementById('restart-btn');
+        restartBtn.addEventListener('click', () =>
         {
             const MaxAttempts = 10000;
                 
@@ -94,18 +78,8 @@ class World
             this.regenerateAttractor();
         });
         
-        attractors.AttractorsPrototypes.forEach((Prototype, i) =>
-        {
-            const attractorBtn = attractorsFolder.addButton({title: Prototype.getName()});
-            attractorBtn.on('click', () =>
-            {
-                currentAttractor.clear(GUI);
-                currentAttractor = new Prototype();
-                currentAttractor.init(GUI);
-
-                this.regenerateAttractor();
-            });
-        });
+        GUI = new Tweakpane.Pane();
+        GUI.hidden = true;
 
     }
 
