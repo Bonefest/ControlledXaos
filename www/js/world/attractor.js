@@ -1,5 +1,57 @@
 import * as THREE from '../vendor/three.js';
-// TODO: class PolynomN - attractor, which allows to use polynoms on any order
+
+const questionIcon = `<svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="currentColor" class="bi bi-question-lg" viewBox="0 0 16 16">
+  <path fill-rule="evenodd" d="M4.475 5.458c-.284 0-.514-.237-.47-.517C4.28 3.24 5.576 2 7.825 2c2.25 0 3.767 1.36 3.767 3.215 0 1.344-.665 2.288-1.79 2.973-1.1.659-1.414 1.118-1.414 2.01v.03a.5.5 0 0 1-.5.5h-.77a.5.5 0 0 1-.5-.495l-.003-.2c-.043-1.221.477-2.001 1.645-2.712 1.03-.632 1.397-1.135 1.397-2.028 0-.979-.758-1.698-1.926-1.698-1.009 0-1.71.529-1.938 1.402-.066.254-.278.461-.54.461h-.777ZM7.496 14c.622 0 1.095-.474 1.095-1.09 0-.618-.473-1.092-1.095-1.092-.606 0-1.087.474-1.087 1.091S6.89 14 7.496 14Z"></path>
+</svg>`;
+
+const CalculationSpeed =
+{
+    ExtremelyFast: 0,
+    Fast: 1,
+    RelativelyFast: 2,
+    RelativelySlow: 3,
+    Slow: 4,
+    ExtremelySlow: 5
+};
+
+function generateSpeedDescription(speed)
+{
+    switch(speed)
+    {
+        case CalculationSpeed.ExtremelyFast: return `<span style="color: rgb(143, 215, 219);"> extremely fast </span> (up to 10 seconds)`;                        
+        case CalculationSpeed.Fast: return `<span style="color: rgb(39, 151, 135);"> fast </span> (10-60 seconds)`;
+        case CalculationSpeed.RelativelyFast: return `<span style="color: rgb(238, 122, 52);"> relatively fast </span> (1-10 minutes)`;
+        case CalculationSpeed.RelativelySlow: return `<span style="color: rgb(238, 122, 52);"> relatively slow </span> (10-30 minutes)`;        
+        case CalculationSpeed.Slow: return `<span style="color: rgb(238, 122, 52);"> slow </span> (30-60 minutes)`;
+        case CalculationSpeed.ExtremelySlow: return `<span style="color: green;"> extremely slow </span> (1 hour+)`;
+    }
+}
+
+function generateTemplate(imgSrc, title, description, btnID, speed, dims)
+{
+    let speedDesc = generateSpeedDescription(speed);
+    
+    return `
+<div class="card bg-dark text-white">
+  <div class="row g-0">
+    <div class="col-2">
+      <img src="${imgSrc}" class="img-fluid rounded-start" style="height: 100%">
+    </div>
+
+    <div class="col-10">
+      <div class="card-body">
+        <h5 class="card-title">${title}</h5>
+        <p class="card-text">${questionIcon} ${description}<i class="bi-quote"></i></p>
+        <p class="card-text additional-info p-0 m-0">Calculation speed: ${speedDesc}</p>
+        <p class="card-text additional-info">Dimensions: ${dims}</p>
+        <button type="button" class="btn btn-light btn-lg" id="${btnID}">Visualize</button>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+}
+
 class HenonAttractor
 {
     init(gui)
@@ -21,8 +73,18 @@ class HenonAttractor
     {
         return new THREE.Vector3(1 + -1.4 * ps.x * ps.x + 0.3 * ps.y, ps.x, 0.0);
     }
-    
+
+    static getID()
+    {
+        return "henon";
+    }
+
     static getName() { return "Henon Attractor"; }    
+    
+    static getDescriptionHTML()
+    {
+        return generateTemplate("img/henon.jpeg", HenonAttractor.getName(), "The Hénon map, sometimes called Hénon-Pomeau attractor/map, is a discrete-time dynamical system. It is one of the most studied examples of dynamical systems that exhibit chaotic behavior. The Hénon map takes a point (xn, yn) in the plane and maps it to a new point.", HenonAttractor.getID(), CalculationSpeed.ExtremelyFast, "2D");
+    }
 };
 
 class PlaneAttractor
@@ -57,8 +119,19 @@ class PlaneAttractor
                                  this.a7 + this.a8 * ps.x + this.a9 * ps.x * ps.x + this.a10 * ps.x * ps.y + this.a11 * ps.y + this.a12 * ps.y * ps.y,
                                  0);
     }
-    
+
+    static getID()
+    {
+        return "plane";
+    }
+
     static getName() { return "Plane Attractor"; }    
+    
+    static getDescriptionHTML()
+    {
+        return generateTemplate("img/henon.jpeg", PlaneAttractor.getName(), "Plane attractor is a simplified version of the 2nd-order polynom, where z coordinate is always equal 1. It's suitable for users that are not interested in volumetric attractors.", PlaneAttractor.getID(), CalculationSpeed.Fast, "2D");
+    }
+
 };
 
 function createPolynomNAttractor(order)
@@ -81,6 +154,11 @@ function createPolynomNAttractor(order)
         clear(gui)
         {
             gui.remove(this.folder);
+        }
+
+        generateDescription(screen)
+        {
+
         }
         
         generateWeights()
@@ -125,8 +203,18 @@ function createPolynomNAttractor(order)
 
             return ns;
         }
+
+        static getID()
+        {
+            return `polynom${order}`;
+        }
         
-        static getName() { return "Polynom" + order + " Attractor"; }
+        static getDescriptionHTML()
+        {
+            return generateTemplate("img/henon.jpeg", `Polynon${order} Attractor`, `General ${order}-order attractor, meaning that each of its coordinates is calculated as a polynom of ${order} order. Choosing coefficients can be a slow process. Consider using Plane Attractor if you need to get results faster.`, `polynom${order}`, CalculationSpeed.Slow, "3D");
+        }
+        
+        static getName() { return `Polynom${order} Attractor`; }
     };
 
 }

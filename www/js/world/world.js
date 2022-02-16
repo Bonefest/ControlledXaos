@@ -18,6 +18,18 @@ let pointsMultiplier = new THREE.Vector3(10, 10, 10);
 
 class World
 {
+    
+    constructor(container)
+    {
+        this.initRenderer(container);
+        this.initSceneElements(container);
+        this.initGUI();
+
+        currentAttractor = new attractors.AttractorsPrototypes[0];
+        currentAttractor.init(GUI);
+        this.regenerateAttractor();
+    }
+
     initRenderer(container)
     {
         this.render = this.render.bind(this);
@@ -96,16 +108,14 @@ class World
         });
 
     }
-    
-    constructor(container)
-    {
-        this.initRenderer(container);
-        this.initSceneElements(container);
-        this.initGUI();
 
-        currentAttractor = new attractors.AttractorsPrototypes[0];
+    setAttractor(Prototype)
+    {
+        currentAttractor.clear(GUI);
+        currentAttractor = new Prototype();
         currentAttractor.init(GUI);
-        this.regenerateAttractor();
+
+        this.regenerateAttractor();        
     }
     
     regenerateAttractor()
