@@ -36,10 +36,10 @@ class Colormap
         for(let i = 0; i < this.samplesCount; i++)
         {
             let t = i / this.samplesCount;
-            let l = t * startL + (1 - t) * endL;
-            let h = t * startH + (1 - t) * endH;
+            let l = (1 - t) * startL + t * endL;
+            let h = (1 - t) * startH + t * endH;
             
-            colors.push(new THREE.Color().setHSL(h, 1, l));
+            colors.push(new THREE.Color().setHSL(h / 360.0, 0.5, l / 100.0));
         }
 
         this._updateData(colors);
@@ -60,7 +60,7 @@ class Colormap
             this.data[i * stride] = Math.floor(color.r * 255);
             this.data[i * stride + 1] = Math.floor(color.g * 255);
             this.data[i * stride + 2] = Math.floor(color.b * 255);
-            this.data[i * stride + 3] = 1.0;
+            this.data[i * stride + 3] = 255;
         }
 
         this.texture.needsUpdate = true;
@@ -113,7 +113,7 @@ class World
         visualizationClock = new THREE.Clock();
 
         colormap = new Colormap(1024);
-        colormap.generateColors(0, 180, 120, 180);
+        colormap.generateColors(40, 45, 172, 193);
     }
 
     initGUI()
@@ -140,6 +140,11 @@ class World
             }
             
             this.regenerateAttractor();
+
+            colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
+                                    THREE.MathUtils.randFloat(40, 70),
+                                    THREE.MathUtils.randFloat(0, 360),
+                                    THREE.MathUtils.randFloat(0, 360));            
         });
     }
 
@@ -149,7 +154,8 @@ class World
         currentAttractor = new Prototype();
         currentAttractor.init();
 
-        this.regenerateAttractor();        
+        this.regenerateAttractor();
+
     }
     
     regenerateAttractor()
