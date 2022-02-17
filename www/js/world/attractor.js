@@ -54,14 +54,14 @@ function generateTemplate(imgSrc, title, description, btnID, speed, dims)
 
 class HenonAttractor
 {
-    init(gui)
+    init()
     {
-        this.folder = gui.addFolder({ 'title': 'Henon attractor settings'});
+
     }
 
-    clear(gui)
+    clear()
     {
-        gui.remove(this.folder);
+
     }
     
     generateWeights()
@@ -89,20 +89,14 @@ class HenonAttractor
 
 class PlaneAttractor
 {
-    init(gui)
+    init()
     {
-        this.generateWeights();
-        
-        this.folder = gui.addFolder({ 'title': 'Plane attractor settings'});
-        for(let i = 1; i < 13; i++)
-        {
-            this.folder.addInput(this, 'a' + i, {min: -2.0, max: 2.0});
-        }
+
     }
 
-    clear(gui)
+    clear()
     {
-        gui.remove(this.folder);
+
     }
     
     generateWeights()
@@ -138,22 +132,14 @@ function createPolynomNAttractor(order)
 {
     return class
     {
-        init(gui)
+        init()
         {
-            this.generateWeights();
-            
-            this.folder = gui.addFolder({ 'title' : 'Polynom' + order +' attractor settings'});
-            
-            let coeffsCount = this.getCoeffsCount();
-            for(let i = 0; i < coeffsCount; i++)
-            {
-                this.folder.addInput(this, 'a' + i, {min: -1.5, max: 1.5});
-            }
+
         }
 
-        clear(gui)
+        clear()
         {
-            gui.remove(this.folder);
+
         }
 
         generateDescription(screen)

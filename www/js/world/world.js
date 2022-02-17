@@ -5,16 +5,77 @@ import { AttractorScreen } from './attractor_screen.js';
 
 import { OrbitControls } from '../vendor/OrbitControls.js';
 
-let GUI;
 let scene;
 let camera;
 let controls;
 let renderer;
+let colormap;
 let currentAttractor;
 let visualizationClock;
 
 let pointsBufferSize = { BufferSize: 50000 };
 let pointsMultiplier = new THREE.Vector3(10, 10, 10);
+
+class Colormap
+{
+    constructor(samplesCount)
+    {
+        this.samplesCount = samplesCount;
+        this._generateTexture(new Array(samplesCount).fill(new THREE.Vector3()));
+    }
+    
+    setColors(colors)
+    {
+        this._updateData(colors);
+    }
+
+    generateColors(startL, endL, startH, endH)
+    {
+        let colors = new Array();
+
+        for(let i = 0; i < this.samplesCount; i++)
+        {
+            let t = i / this.samplesCount;
+            let l = t * startL + (1 - t) * endL;
+            let h = t * startH + (1 - t) * endH;
+            
+            colors.push(new THREE.Color().setHSL(h, 1, l));
+        }
+
+        this._updateData(colors);
+    }
+
+    getTexture()
+    {
+        return this.texture;
+    }
+
+    _updateData(colors)
+    {
+        const stride = 4;
+        for(let i = 0; i < colors.length; i++)
+        {
+            let color = colors[i];
+            
+            this.data[i * stride] = Math.floor(color.r * 255);
+            this.data[i * stride + 1] = Math.floor(color.g * 255);
+            this.data[i * stride + 2] = Math.floor(color.b * 255);
+            this.data[i * stride + 3] = 1.0;
+        }
+
+        this.texture.needsUpdate = true;
+    }
+    
+    _generateTexture(colors)
+    {
+        const width = this.samplesCount;
+        const height = 1;
+        
+        this.data = new Uint8Array(4 * this.samplesCount);
+        this.texture = new THREE.DataTexture(this.data, width, height);
+    }
+    
+}
 
 class World
 {
@@ -26,7 +87,7 @@ class World
         this.initGUI();
 
         currentAttractor = new attractors.AttractorsPrototypes[0];
-        currentAttractor.init(GUI);
+        currentAttractor.init();
         this.regenerateAttractor();
     }
 
@@ -50,6 +111,9 @@ class World
         controls.update();
 
         visualizationClock = new THREE.Clock();
+
+        colormap = new Colormap(1024);
+        colormap.generateColors(0, 180, 120, 180);
     }
 
     initGUI()
@@ -77,17 +141,13 @@ class World
             
             this.regenerateAttractor();
         });
-        
-        GUI = new Tweakpane.Pane();
-        GUI.hidden = true;
-
     }
 
     setAttractor(Prototype)
     {
-        currentAttractor.clear(GUI);
+        currentAttractor.clear();
         currentAttractor = new Prototype();
-        currentAttractor.init(GUI);
+        currentAttractor.init();
 
         this.regenerateAttractor();        
     }
@@ -99,18 +159,43 @@ class World
         
         const vertices = [];
 
+        let aabbMin = new THREE.Vector3(9999, 9999, 9999);
+        let aabbMax = new THREE.Vector3(-9999, -9999, -9999);
+        
         let state = new THREE.Vector3();
         for(let i = 0; i < pointsBufferSize.BufferSize; i++)
         {
             state = currentAttractor.generateState(state);
             vertices.push(state.x * pointsMultiplier.x, state.y * pointsMultiplier.y, state.z * pointsMultiplier.z);
+
+            aabbMin.x = Math.min(aabbMin.x, state.x);
+            aabbMin.y = Math.min(aabbMin.y, state.y);
+            aabbMin.z = Math.min(aabbMin.z, state.z);
+
+            aabbMax.x = Math.max(aabbMax.x, state.x);
+            aabbMax.y = Math.max(aabbMax.y, state.y);
+            aabbMax.z = Math.max(aabbMax.z, state.z);
         }
 
+        let aabbDiagonal = new THREE.Vector4();
+        aabbDiagonal.w = aabbMin.distanceTo(aabbMax);        
+        aabbDiagonal.x = (aabbMax.x - aabbMin.x) / aabbDiagonal.w;
+        aabbDiagonal.y = (aabbMax.y - aabbMin.y) / aabbDiagonal.w;
+        aabbDiagonal.z = (aabbMax.z - aabbMin.z) / aabbDiagonal.w;
+
+        console.log(aabbMin);
+        console.log(aabbMax);
+        console.log(aabbDiagonal);        
+        
         const material = new THREE.ShaderMaterial({
 
             uniforms:
             {
                 time: { value: 0.0 },
+                colormapTex: { value: colormap.getTexture() },
+                aabbMin: {value: aabbMin },
+                aabbMax: {value: aabbMax },
+                aabbDiagonal: {value: aabbDiagonal },
             },
 
             vertexShader: document.getElementById('particlesVertexShader').textContent,

@@ -37,20 +37,43 @@ class AttractorScreen
         let html =
 `
 <div class="container-fluid p-0 vh-100 overflow-auto" style="background-color: rgba(255, 255, 255, 0.1);">
+  <div class="accordion accordion-flush" id="attractor-settings">
+
+    <div class="accordion-item standard-list-item">
+
+      <h2 class="accordion-header" id="head_one">
+        <button class="accordion-button collapsed standard-list-header" type="button" data-bs-toggle="collapse" data-bs-target="#flush-one" aria-expanded="false" aria-controls="flush-one">
+          Attractor settings
+        </button>
+
+      </h2>
+
+      <div id="flush-one" class="accordion-collapse collapse" aria-labelledby="head_one" data-bs-parent="#attractor-settings">
+        <div class="card bg-dark text-white">
+          <div class="row g-0">
+            <div class="col-12">
+              <div class="card-body">
+                <p class="card-text">Input 1</p>
+              </div>
+            </div>
+          </div>
+        </div>      
+      </div>
+    </div>
+  </div>
+
   <div class="accordion accordion-flush" id="attractors-classes">
 
     <div class="accordion-item standard-list-item">
 
-
-
-      <h2 class="accordion-header" id="head_one">
-        <button class="accordion-button collapsed standard-list-header" type="button" data-bs-toggle="collapse" data-bs-target="#flush-one" aria-expanded="false" aria-controls="flush-one">
+      <h2 class="accordion-header" id="head_two">
+        <button class="accordion-button collapsed standard-list-header" type="button" data-bs-toggle="collapse" data-bs-target="#flush-two" aria-expanded="false" aria-controls="flush-two">
           Attractor classes
         </button>
 
       </h2>
 
-      <div id="flush-one" class="accordion-collapse collapse" aria-labelledby="head_one" data-bs-parent="#attractors-classes">
+      <div id="flush-two" class="accordion-collapse collapse" aria-labelledby="head_two" data-bs-parent="#attractors-classes">
 `;
         attractors.AttractorsPrototypes.forEach((Prototype, i) =>
         {
