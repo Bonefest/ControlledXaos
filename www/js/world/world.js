@@ -82,11 +82,22 @@ class World
         let screen = document.getElementById('screen');
         screen.innerHTML =
 `
-<div class="container-fluid p-0 vh-100 overflow-auto" style="background-color: rgba(255, 255, 255, 0.1);">
+<div class="container-fluid p-0 vh-100" style="background-color: rgba(255, 255, 255, 0.1);">
   <div class="row align-items-center h-100">
-    <div class="col-6 offset-3">
-      <div class="progress" style="height: 20px;">
-        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="calculation-progress"></div>
+    <div class="col-10 offset-1">
+      <div class="row pb-2 g-0">
+        <div class="col-7">
+          <h6 style='color: white;' id='calc-title'></h6>
+        </div>
+        <div class="col-3 offset-2 d-grid">
+          <button type="button" class="btn btn-outline-danger rounded-0 text-white" id="stop-calcs-button">Stop</button>
+        </div>
+      </div>
+
+      <div class="row p-0 m-0 g-0">
+        <div class="progress" style="height: 20px;">
+          <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="calculation-progress"></div>
+        </div>
       </div>
     </div>
   </div>
@@ -94,6 +105,19 @@ class World
 `;
         owner.attractorGenerationIter = 0;
         owner.attractorGenerationEnabled = true;
+
+        let stopBtn = document.getElementById('stop-calcs-button');
+        stopBtn.addEventListener('click', () =>
+        {
+            owner.attractorGenerationEnabled = false;
+            owner.calculateAttractor();
+            colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
+                                    THREE.MathUtils.randFloat(40, 70),
+                                    THREE.MathUtils.randFloat(0, 360),
+                                    THREE.MathUtils.randFloat(0, 360));
+
+            screen.innerHTML = '';
+        });
     }
 
     generateAttractorLoop(owner)
@@ -105,7 +129,7 @@ class World
 
         const MaxAttempts = 10000;
         
-        for(let i = 0; i < 5 && owner.attractorGenerationIter < MaxAttempts; i++, owner.attractorGenerationIter++)
+        for(let i = 0; i < 7 && owner.attractorGenerationIter < MaxAttempts; i++, owner.attractorGenerationIter++)
         {
             currentAttractor.generateWeights();
             let L = attractors.calculateLyapunovExponent(currentAttractor);
@@ -139,8 +163,13 @@ class World
             {
                 let percent = (owner.attractorGenerationIter / MaxAttempts) * 100;
                 progressBar.style = `width: ${percent}%;`;
-                progressBar.innerHTML = `Attempt ${owner.attractorGenerationIter}/${MaxAttempts}`;
-            }            
+            }
+
+            let title = document.getElementById('calc-title');
+            if(title != null)
+            {
+                title.innerHTML = `Searching for attractor (${owner.attractorGenerationIter}/${MaxAttempts})`;
+            }
         }
     }
 
