@@ -1,5 +1,6 @@
 import * as THREE from '../vendor/three.js';
 import * as attractors from './attractor.js';
+import { Colormap } from './colormap.js';
 import { GeneralScreen } from './general_screen.js';
 import { AttractorScreen } from './attractor_screen.js';
 
@@ -16,66 +17,6 @@ let visualizationClock;
 let pointsBufferSize = { BufferSize: 50000 };
 let pointsMultiplier = new THREE.Vector3(10, 10, 10);
 
-class Colormap
-{
-    constructor(samplesCount)
-    {
-        this.samplesCount = samplesCount;
-        this._generateTexture(new Array(samplesCount).fill(new THREE.Vector3()));
-    }
-    
-    setColors(colors)
-    {
-        this._updateData(colors);
-    }
-
-    generateColors(startL, endL, startH, endH)
-    {
-        let colors = new Array();
-
-        for(let i = 0; i < this.samplesCount; i++)
-        {
-            let t = i / this.samplesCount;
-            let l = (1 - t) * startL + t * endL;
-            let h = (1 - t) * startH + t * endH;
-            
-            colors.push(new THREE.Color().setHSL(h / 360.0, 0.5, l / 100.0));
-        }
-
-        this._updateData(colors);
-    }
-
-    getTexture()
-    {
-        return this.texture;
-    }
-
-    _updateData(colors)
-    {
-        const stride = 4;
-        for(let i = 0; i < colors.length; i++)
-        {
-            let color = colors[i];
-            
-            this.data[i * stride] = Math.floor(color.r * 255);
-            this.data[i * stride + 1] = Math.floor(color.g * 255);
-            this.data[i * stride + 2] = Math.floor(color.b * 255);
-            this.data[i * stride + 3] = 255;
-        }
-
-        this.texture.needsUpdate = true;
-    }
-    
-    _generateTexture(colors)
-    {
-        const width = this.samplesCount;
-        const height = 1;
-        
-        this.data = new Uint8Array(4 * this.samplesCount);
-        this.texture = new THREE.DataTexture(this.data, width, height);
-    }
-    
-}
 
 class World
 {
@@ -86,9 +27,9 @@ class World
         this.initSceneElements(container);
         this.initGUI();
 
-        currentAttractor = new attractors.AttractorsPrototypes[0];
-        currentAttractor.init();
-        this.regenerateAttractor();
+        this.attractorGenerationIter = 0;
+        this.attractorGenerationEnabled = false;
+        this.setAttractor(attractors.AttractorsPrototypes[0]);
     }
 
     initRenderer(container)
@@ -124,41 +65,87 @@ class World
         this['attractor'] = new AttractorScreen(this);        
 
         let restartBtn = document.getElementById('restart-btn');
-        restartBtn.addEventListener('click', () =>
-        {
-            const MaxAttempts = 10000;
-                
-            for(let i = 0; i < MaxAttempts; i++)
-            {
-                currentAttractor.generateWeights();
-                let L = attractors.calculateLyapunovExponent(currentAttractor);
-                console.log(L);
-                if(L > 0.3 && L < 10.0)
-                {
-                    break;
-                }
-            }
-            
-            this.regenerateAttractor();
+        restartBtn.addEventListener('click', () => { this.beginGenerateAttractor(this); });
 
-            colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
-                                    THREE.MathUtils.randFloat(40, 70),
-                                    THREE.MathUtils.randFloat(0, 360),
-                                    THREE.MathUtils.randFloat(0, 360));            
-        });
+        let likeBtn = document.getElementById('like-btn');
+        likeBtn.addEventListener('click', () => { this.onLikeClicked(this); });
     }
 
     setAttractor(Prototype)
     {
-        currentAttractor.clear();
         currentAttractor = new Prototype();
-        currentAttractor.init();
-
-        this.regenerateAttractor();
-
+        this.calculateAttractor();
     }
+
+    beginGenerateAttractor(owner)
+    {
+        let screen = document.getElementById('screen');
+        screen.innerHTML =
+`
+<div class="container-fluid p-0 vh-100 overflow-auto" style="background-color: rgba(255, 255, 255, 0.1);">
+  <div class="row align-items-center h-100">
+    <div class="col-6 offset-3">
+      <div class="progress" style="height: 20px;">
+        <div class="progress-bar" role="progressbar" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100" id="calculation-progress"></div>
+      </div>
+    </div>
+  </div>
+</div>
+`;
+        owner.attractorGenerationIter = 0;
+        owner.attractorGenerationEnabled = true;
+    }
+
+    generateAttractorLoop(owner)
+    {
+        if(!owner.attractorGenerationEnabled)
+        {
+            return;
+        }
+
+        const MaxAttempts = 10000;
+        
+        for(let i = 0; i < 5 && owner.attractorGenerationIter < MaxAttempts; i++, owner.attractorGenerationIter++)
+        {
+            currentAttractor.generateWeights();
+            let L = attractors.calculateLyapunovExponent(currentAttractor);
+
+            if(L > 0.3 && L < 10.0)
+            {
+                owner.attractorGenerationEnabled = false;
+                owner.calculateAttractor();
+                colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
+                                        THREE.MathUtils.randFloat(40, 70),
+                                        THREE.MathUtils.randFloat(0, 360),
+                                        THREE.MathUtils.randFloat(0, 360));
+
+                break;
+
+            }
+
+        }
+
+        if(!owner.attractorGenerationEnabled || owner.attractorGenerationIter >= MaxAttempts)
+        {
+            owner.attractorGenerationEnabled = false;
+            
+            let screen = document.getElementById('screen');            
+            screen.innerHTML = '';
+        }
+        else
+        {
+            let progressBar = document.getElementById('calculation-progress');
+            if(progressBar != null)
+            {
+                let percent = (owner.attractorGenerationIter / MaxAttempts) * 100;
+                progressBar.style = `width: ${percent}%;`;
+                progressBar.innerHTML = `Attempt ${owner.attractorGenerationIter}/${MaxAttempts}`;
+            }            
+        }
+    }
+
     
-    regenerateAttractor()
+    calculateAttractor()
     {
         scene.remove.apply(scene, scene.children);
         visualizationClock.start();
@@ -227,8 +214,28 @@ class World
     {
         requestAnimationFrame(this.render);
 
-        controls.update();
-        renderer.render(scene, camera);
+        if(this.attractorGenerationEnabled)
+        {
+            this.generateAttractorLoop(this);
+        }
+        else
+        {
+            controls.update();
+            renderer.render(scene, camera);
+        }
+    }
+
+    onLikeClicked(owner)
+    {
+        let likeBtn = document.getElementById('like-btn-icon');        
+        likeBtn.classList.toggle('fas');
+        likeBtn.classList.toggle('far');
+
+        let liked = likeBtn.classList.contains('fas');
+        if(liked)
+        {
+            
+        }
     }
 }
 

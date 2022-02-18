@@ -61,9 +61,42 @@
     color: #dee2e6;
 }
 
+#like-btn
+{
+    margin: 0;
+    padding: 0;
+    top: 90%;
+    left: 80%;
+    position: fixed;
+    z-index: -1;
+    border-width: 0px;
+    color: #881919;
+}
+
+#like-btn:focus
+{
+    animation:like 0.4s linear;
+}
+
+#like-btn:active
+{
+    animation:none;
+}
+
+
 @keyframes spin { 
     100% { 
         -webkit-transform: rotate(360deg); 
         transform:rotate(360deg); 
+    } 
+}
+
+@keyframes like {
+    50% {
+        -webkit-transform: scale(2);
+    }
+    
+    100% { 
+        -webkit-transform: scale(1); 
     } 
 }
