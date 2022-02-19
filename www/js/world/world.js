@@ -17,7 +17,6 @@ let visualizationClock;
 let pointsBufferSize = { BufferSize: 50000 };
 let pointsMultiplier = new THREE.Vector3(10, 10, 10);
 
-
 class World
 {
     
@@ -257,13 +256,15 @@ class World
     onLikeClicked(owner)
     {
         let likeBtn = document.getElementById('like-btn-icon');        
-        likeBtn.classList.toggle('fas');
         likeBtn.classList.toggle('far');
+        likeBtn.classList.toggle('fas');
 
+        db.put({_id: new Date().toISOString(), title: 'test'});
+        
         let liked = likeBtn.classList.contains('fas');
         if(liked)
         {
-            
+
         }
     }
 }

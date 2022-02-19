@@ -1,0 +1,8 @@
+Used DB: CouchDB, it's using port 5984
+
+To communicate with it, we've created (temporarily) a public database 'attractors_db'.
+Basically, we are working with a local DB (through PouchDB framework), which is talking (replicating) info with the remote DB (CouchDB).
+
+To workaround CORS, we use `adb reverse tcp:5984 tcp:5984`, so that the same origin is applied.xb
+
+Finally, on Android, we've enabled 'usesCleartextTraffic'.
