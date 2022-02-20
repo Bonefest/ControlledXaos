@@ -9,7 +9,7 @@ class AttractorScreen
         this.world = world;
         
         let btn = document.getElementById('attractor-btn');
-        let btBtn = new bootstrap.Button(btn);
+
         btn.addEventListener('click', () =>
         {
             this.onClick(btn);

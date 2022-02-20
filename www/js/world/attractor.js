@@ -35,7 +35,7 @@ function generateTemplate(imgSrc, title, description, btnID, speed, dims)
 <div class="card bg-dark text-white">
   <div class="row g-0">
     <div class="col-2">
-      <img src="${imgSrc}" class="img-fluid rounded-start" style="height: 100%">
+      <img src="${imgSrc}" class="img-fluid rounded-start" style="height: 100%; object-fit: cover;">
     </div>
 
     <div class="col-10">
@@ -56,7 +56,12 @@ class HenonAttractor
 {
     init()
     {
-
+        this.json = {};
+        this.json.type = HenonAttractor.getID();        
+        this.json.w = new Array(3);
+        this.json.w[0] = 1;
+        this.json.w[1] = -1.4;
+        this.json.w[2] = 0.3        
     }
 
     clear()
@@ -71,12 +76,12 @@ class HenonAttractor
     
     generateState(ps)
     {
-        return new THREE.Vector3(1 + -1.4 * ps.x * ps.x + 0.3 * ps.y, ps.x, 0.0);
+        return new THREE.Vector3(this.json.w[0] + this.json.w[1] * ps.x * ps.x + this.json.w[2] * ps.y, ps.x, 0.0);
     }
 
     static getID()
     {
-        return "henon";
+        return "Henon";
     }
 
     static getName() { return "Henon Attractor"; }    
@@ -91,7 +96,9 @@ class PlaneAttractor
 {
     init()
     {
-
+        this.json = {};
+        this.json.type = PlaneAttractor.getID();
+        this.json.w = new Array(13);
     }
 
     clear()
@@ -103,20 +110,20 @@ class PlaneAttractor
     {
         for(let i = 0; i < 13; i++)
         {
-            this['a' + i] = THREE.MathUtils.randFloat(-2.0, 2.0);
+            this.json.w[i] = THREE.MathUtils.randFloat(-2.0, 2.0);
         }
     }
     
     generateState(ps)
     {
-        return new THREE.Vector3(this.a1 + this.a2 * ps.x + this.a3 * ps.x * ps.x + this.a4 * ps.x * ps.y + this.a5 * ps.y + this.a6 * ps.y * ps.y,
-                                 this.a7 + this.a8 * ps.x + this.a9 * ps.x * ps.x + this.a10 * ps.x * ps.y + this.a11 * ps.y + this.a12 * ps.y * ps.y,
+        return new THREE.Vector3(this.json.w[0] + this.json.w[1] * ps.x + this.json.w[2] * ps.x * ps.x + this.json.w[3] * ps.x * ps.y + this.json.w[4] * ps.y + this.json.w[5] * ps.y * ps.y,
+                                 this.json.w[6] + this.json.w[7] * ps.x + this.json.w[8] * ps.x * ps.x + this.json.w[9] * ps.x * ps.y + this.json.w[10] * ps.y + this.json.w[11] * ps.y * ps.y,
                                  0);
     }
 
     static getID()
     {
-        return "plane";
+        return "Plane";
     }
 
     static getName() { return "Plane Attractor"; }    
@@ -130,30 +137,30 @@ class PlaneAttractor
 
 function createPolynomNAttractor(order)
 {
+    const type = `Polynom${order}`;
+    const name = `Polynom${order} Attractor`;
+    
     return class
     {
         init()
         {
+            let coeffsCount = this.getCoeffsCount();
 
+            this.json = {};
+            this.json.type = type;
+            this.json.w = new Array(coeffsCount);
         }
 
         clear()
         {
 
         }
-
-        generateDescription(screen)
-        {
-
-        }
         
         generateWeights()
         {
-            let coeffsCount = this.getCoeffsCount();
-            
-            for(let i = 0; i < coeffsCount; i++)
+            for(let i = 0; i < this.json.w.length; i++)
             {
-                this['a' + i] = THREE.MathUtils.randFloat(-1.5, 1.5);
+                this.json.w[i] = THREE.MathUtils.randFloat(-1.5, 1.5);
             }
         }
 
@@ -178,9 +185,9 @@ function createPolynomNAttractor(order)
                         let x = Math.pow(ps.x, xp);
                         let xyz = x * y * z;
                         
-                        ns.x += this['a' + coeffIdx] * xyz;
-                        ns.y += this['a' + (coeffIdx + 1)] * xyz;
-                        ns.z += this['a' + (coeffIdx + 2)] * xyz;
+                        ns.x += this.json.w[coeffIdx] * xyz;
+                        ns.y += this.json.w[coeffIdx + 1] * xyz;
+                        ns.z += this.json.w[coeffIdx + 2] * xyz;
                         
                         coeffIdx += 3;
                     }
@@ -192,15 +199,15 @@ function createPolynomNAttractor(order)
 
         static getID()
         {
-            return `polynom${order}`;
+            return type;
         }
         
         static getDescriptionHTML()
         {
-            return generateTemplate("img/henon.jpeg", `Polynon${order} Attractor`, `General ${order}-order attractor, meaning that each of its coordinates is calculated as a polynom of ${order} order. Choosing coefficients can be a slow process. Consider using Plane Attractor if you need to get results faster.`, `polynom${order}`, CalculationSpeed.Slow, "3D");
+            return generateTemplate("img/henon.jpeg", name, `General ${order}-order attractor, meaning that each of its coordinates is calculated as a polynom of ${order} order. Choosing coefficients can be a slow process. Consider using Plane Attractor if you need to get results faster.`, type, CalculationSpeed.Slow, "3D");
         }
         
-        static getName() { return `Polynom${order} Attractor`; }
+        static getName() { return name; }
     };
 
 }
@@ -255,15 +262,15 @@ export function calculateLyapunovExponent(attractor)
     return L / CalculationSteps;
 }
 
-const AttractorsPrototypes = [
-    HenonAttractor,
-    PlaneAttractor,
-    Polynom2Attractor,
-    Polynom3Attractor,    
-    Polynom4Attractor,
-    Polynom5Attractor,
-    Polynom6Attractor,
-    Polynom7Attractor,        
-];
+const AttractorsPrototypes = new Map([
+    [HenonAttractor.getID(), HenonAttractor],
+    [PlaneAttractor.getID(), PlaneAttractor],
+    [Polynom2Attractor.getID(), Polynom2Attractor],
+    [Polynom3Attractor.getID(), Polynom3Attractor],
+    [Polynom4Attractor.getID(), Polynom4Attractor],
+    [Polynom5Attractor.getID(), Polynom5Attractor],
+    [Polynom6Attractor.getID(), Polynom6Attractor],
+    [Polynom7Attractor.getID(), Polynom7Attractor]
+]);
 
 export { AttractorsPrototypes };

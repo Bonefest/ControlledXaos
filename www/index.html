@@ -11,7 +11,6 @@
         <script>
           var db = new PouchDB('attractors_db');
           var remoteCouch = 'http://localhost:5984/attractors_db';
-          db.put({_id: new Date().toISOString(), title: 'test'});
           
           db.replicate.to(remoteCouch, {live: true}, () => { alert('error!')});
           db.replicate.from(remoteCouch, {live: true}, () => { alert('error!')});
@@ -29,7 +28,6 @@
 
         <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.1/css/all.min.css" rel="stylesheet"/>
         
-        <link href="https://cdnjs.cloudflare.com/ajax/libs/mdb-ui-kit/3.10.2/mdb.min.css" rel="stylesheet"/>
         
         <link rel="stylesheet" href="css/general.css">
         
@@ -166,7 +164,7 @@
       </button>
 
       <button type="button" class="btn btn-outline-light" id="like-btn">
-        <i class="fas fa-heart fa-4x" id="like-btn-icon"></i>
+        <i class="far fa-heart fa-4x" id="like-btn-icon"></i>
       </button>
 
       

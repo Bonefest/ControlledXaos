@@ -1,8 +1,10 @@
 import * as THREE from '../vendor/three.js';
 import * as attractors from './attractor.js';
 import { Colormap } from './colormap.js';
+
 import { GeneralScreen } from './general_screen.js';
 import { AttractorScreen } from './attractor_screen.js';
+import { FavouritesScreen } from './favourites_screen.js';
 
 import { OrbitControls } from '../vendor/OrbitControls.js';
 
@@ -11,11 +13,12 @@ let camera;
 let controls;
 let renderer;
 let colormap;
-let currentAttractor;
 let visualizationClock;
 
 let pointsBufferSize = { BufferSize: 50000 };
 let pointsMultiplier = new THREE.Vector3(10, 10, 10);
+
+let currentAttractor;
 
 class World
 {
@@ -28,7 +31,7 @@ class World
 
         this.attractorGenerationIter = 0;
         this.attractorGenerationEnabled = false;
-        this.setAttractor(attractors.AttractorsPrototypes[0]);
+        this.setAttractor(attractors.AttractorsPrototypes.get("Henon"));
     }
 
     initRenderer(container)
@@ -59,8 +62,8 @@ class World
     initGUI()
     {
         this['general'] = new GeneralScreen(this);
-        // this['popular'] = new PopularScreen(this);
-        // this['favourites'] = new Favourites(this);
+        //this['popular'] = new PopularScreen(this);
+        this['favourites'] = new FavouritesScreen(this);
         this['attractor'] = new AttractorScreen(this);        
 
         let restartBtn = document.getElementById('restart-btn');
@@ -70,9 +73,16 @@ class World
         likeBtn.addEventListener('click', () => { this.onLikeClicked(this); });
     }
 
+    setAttractorFromJson(json)
+    {
+
+    }
+    
     setAttractor(Prototype)
     {
         currentAttractor = new Prototype();
+        currentAttractor.init();
+        
         this.calculateAttractor();
     }
 
@@ -89,7 +99,7 @@ class World
           <h6 style='color: white;' id='calc-title'></h6>
         </div>
         <div class="col-3 offset-2 d-grid">
-          <button type="button" class="btn btn-outline-danger rounded-0 text-white" id="stop-calcs-button">Stop</button>
+          <button type="button" class="btn btn-outline-danger text-white" id="stop-calcs-button">Stop</button>
         </div>
       </div>
 
@@ -133,7 +143,7 @@ class World
             currentAttractor.generateWeights();
             let L = attractors.calculateLyapunovExponent(currentAttractor);
 
-            if(L > 0.3 && L < 10.0)
+            if(L > 1.0)
             {
                 owner.attractorGenerationEnabled = false;
                 owner.calculateAttractor();
@@ -150,7 +160,16 @@ class World
 
         if(!owner.attractorGenerationEnabled || owner.attractorGenerationIter >= MaxAttempts)
         {
-            owner.attractorGenerationEnabled = false;
+            if(!owner.attractorGenerationEnabled)
+            {
+                let likeBtn = document.getElementById('like-btn-icon');        
+                likeBtn.classList.toggle('far', true);
+                likeBtn.classList.toggle('fas', false);
+            }
+            else
+            {
+                owner.attractorGenerationEnabled = false;
+            }
             
             let screen = document.getElementById('screen');            
             screen.innerHTML = '';
@@ -258,13 +277,29 @@ class World
         let likeBtn = document.getElementById('like-btn-icon');        
         likeBtn.classList.toggle('far');
         likeBtn.classList.toggle('fas');
-
-        db.put({_id: new Date().toISOString(), title: 'test'});
         
         let liked = likeBtn.classList.contains('fas');
         if(liked)
         {
-
+            currentAttractor.id = new Date().toISOString();
+            db.put({
+                _id: currentAttractor.id,
+                name: `My favorite attractor`,
+                attractor_data: JSON.stringify(currentAttractor.json)
+            });
+        }
+        else
+        {
+            if(currentAttractor.id != null)
+            {
+                db.get(currentAttractor.id, function(err, doc)
+                {
+                    if(!err)
+                    {
+                        db.remove(doc);
+                    }
+                });
+            }
         }
     }
 }
