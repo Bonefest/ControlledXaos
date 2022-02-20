@@ -119,19 +119,20 @@ class FavouritesScreen
 `;
                 }
 
-                html += '</div> <div style="height:320px"></div>';
+                html += '<div style="height:480px"></div>';
                 htmlScreen.innerHTML = html;
                 
                 for(let i = 0; i < attractors["total_rows"]; i++)
                 {
                     let viewBtn = document.getElementById(`view-btn-${i}`);
                     let trashBtn = document.getElementById(`trash-btn-${i}`);
-                    
+
                     let attractorJson = JSON.parse(attractors["rows"][i]["doc"]["attractor_data"]);
+                    let colormapJson = JSON.parse(attractors["rows"][i]["doc"]["colormap_data"]);
                     
                     viewBtn.addEventListener('click', function()
                     {
-                        owner.world.setAttractorFromJson(attractorJson, attractors["rows"][i]["doc"]["_id"]);
+                        owner.world.setAttractorFromJson(attractorJson, colormapJson, attractors["rows"][i]["doc"]["_id"]);
                         owner.removeUI();
                     });
 

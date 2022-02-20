@@ -56,7 +56,7 @@ class World
         visualizationClock = new THREE.Clock();
 
         colormap = new Colormap(1024);
-        colormap.generateColors(40, 45, 172, 193);
+        colormap.generateColorsHSL(40, 45, 172, 193);
     }
 
     initGUI()
@@ -73,10 +73,10 @@ class World
         likeBtn.addEventListener('click', () => { this.onLikeClicked(this); });
     }
 
-    setAttractorFromJson(json, id)
+    setAttractorFromJson(attractorJson, colormapJson, id)
     {
-        this.setAttractor(attractors.AttractorsPrototypes.get(json["type"]));
-        currentAttractor.json = json;
+        this.setAttractor(attractors.AttractorsPrototypes.get(attractorJson["type"]));
+        currentAttractor.json = attractorJson;
         currentAttractor.id = id;
 
         this.calculateAttractor();
@@ -84,6 +84,8 @@ class World
         let likeBtn = document.getElementById('like-btn-icon');        
         likeBtn.classList.toggle('far', false);
         likeBtn.classList.toggle('fas', true);
+
+        colormap.loadFromJson(colormapJson);
     }
     
     setAttractor(Prototype)
@@ -128,10 +130,7 @@ class World
         {
             owner.attractorGenerationEnabled = false;
             owner.calculateAttractor();
-            colormap.generateColors(THREE.MathUtils.randFloat(60, 70),
-                                    THREE.MathUtils.randFloat(60, 70),
-                                    THREE.MathUtils.randFloat(0, 360),
-                                    THREE.MathUtils.randFloat(0, 360));
+            colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(3, 20));
 
             screen.innerHTML = '';
         });
@@ -155,10 +154,7 @@ class World
             {
                 owner.attractorGenerationEnabled = false;
                 owner.calculateAttractor();
-                colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
-                                        THREE.MathUtils.randFloat(40, 70),
-                                        THREE.MathUtils.randFloat(0, 360),
-                                        THREE.MathUtils.randFloat(0, 360));
+                colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(3, 20));                
 
                 break;
 
@@ -224,6 +220,14 @@ class World
             aabbMax.y = Math.max(aabbMax.y, state.y);
             aabbMax.z = Math.max(aabbMax.z, state.z);
         }
+
+        aabbMin.x *= pointsMultiplier.x;
+        aabbMin.y *= pointsMultiplier.y;
+        aabbMin.z *= pointsMultiplier.z;
+
+        aabbMax.x *= pointsMultiplier.x;
+        aabbMax.y *= pointsMultiplier.y;
+        aabbMax.z *= pointsMultiplier.z;
 
         let aabbDiagonal = new THREE.Vector4();
         aabbDiagonal.w = aabbMin.distanceTo(aabbMax);        
@@ -293,7 +297,8 @@ class World
             db.put({
                 _id: currentAttractor.id,
                 name: `My favorite attractor`,
-                attractor_data: JSON.stringify(currentAttractor.json)
+                attractor_data: JSON.stringify(currentAttractor.json),
+                colormap_data: JSON.stringify(colormap.json)
             });
         }
         else
