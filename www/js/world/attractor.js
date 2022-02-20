@@ -32,7 +32,7 @@ function generateTemplate(imgSrc, title, description, btnID, speed, dims)
     let speedDesc = generateSpeedDescription(speed);
     
     return `
-<div class="card bg-dark text-white">
+<div class="card bg-dark text-white pt-4">
   <div class="row g-0">
     <div class="col-2">
       <img src="${imgSrc}" class="img-fluid rounded-start" style="height: 100%; object-fit: cover;">
@@ -44,7 +44,9 @@ function generateTemplate(imgSrc, title, description, btnID, speed, dims)
         <p class="card-text">${questionIcon} ${description}<i class="bi-quote"></i></p>
         <p class="card-text additional-info p-0 m-0">Calculation speed: ${speedDesc}</p>
         <p class="card-text additional-info">Dimensions: ${dims}</p>
-        <button type="button" class="btn btn-light btn-lg" id="${btnID}">Visualize</button>
+        <row class="d-grid">
+          <button type="button" class="btn btn-light btn-lg rounded-0" id="${btnID}">Visualize</button>
+        </row>
       </div>
     </div>
   </div>
@@ -85,10 +87,12 @@ class HenonAttractor
     }
 
     static getName() { return "Henon Attractor"; }    
+
+    static getImgPath() { return "img/henon.jpeg"; }
     
     static getDescriptionHTML()
     {
-        return generateTemplate("img/henon.jpeg", HenonAttractor.getName(), "The Hénon map, sometimes called Hénon-Pomeau attractor/map, is a discrete-time dynamical system. It is one of the most studied examples of dynamical systems that exhibit chaotic behavior. The Hénon map takes a point (xn, yn) in the plane and maps it to a new point.", HenonAttractor.getID(), CalculationSpeed.ExtremelyFast, "2D");
+        return generateTemplate(HenonAttractor.getImgPath(), HenonAttractor.getName(), "The Hénon map, sometimes called Hénon-Pomeau attractor/map, is a discrete-time dynamical system. It is one of the most studied examples of dynamical systems that exhibit chaotic behavior. The Hénon map takes a point (xn, yn) in the plane and maps it to a new point.", HenonAttractor.getID(), CalculationSpeed.ExtremelyFast, "2D");
     }
 };
 
@@ -127,10 +131,12 @@ class PlaneAttractor
     }
 
     static getName() { return "Plane Attractor"; }    
+
+    static getImgPath() { return "img/plane.jpeg"; }
     
     static getDescriptionHTML()
     {
-        return generateTemplate("img/henon.jpeg", PlaneAttractor.getName(), "Plane attractor is a simplified version of the 2nd-order polynom, where z coordinate is always equal 1. It's suitable for users that are not interested in volumetric attractors.", PlaneAttractor.getID(), CalculationSpeed.Fast, "2D");
+        return generateTemplate(PlaneAttractor.getImgPath(), PlaneAttractor.getName(), "Plane attractor is a simplified version of the 2nd-order polynom, where z coordinate is always equal 1. It's suitable for users that are not interested in volumetric attractors.", PlaneAttractor.getID(), CalculationSpeed.Fast, "2D");
     }
 
 };
@@ -139,6 +145,7 @@ function createPolynomNAttractor(order)
 {
     const type = `Polynom${order}`;
     const name = `Polynom${order} Attractor`;
+    const imgPath = `img/polynom${order}.jpeg`;
     
     return class
     {
@@ -201,10 +208,15 @@ function createPolynomNAttractor(order)
         {
             return type;
         }
+
+        static getImgPath()
+        {
+            return imgPath;
+        }
         
         static getDescriptionHTML()
         {
-            return generateTemplate("img/henon.jpeg", name, `General ${order}-order attractor, meaning that each of its coordinates is calculated as a polynom of ${order} order. Choosing coefficients can be a slow process. Consider using Plane Attractor if you need to get results faster.`, type, CalculationSpeed.Slow, "3D");
+            return generateTemplate(imgPath, name, `General ${order}-order attractor, meaning that each of its coordinates is calculated as a polynom of ${order} order. Choosing coefficients can be a slow process. Consider using Plane Attractor if you need to get results faster.`, type, CalculationSpeed.Slow, "3D");
         }
         
         static getName() { return name; }

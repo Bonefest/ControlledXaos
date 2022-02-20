@@ -1,5 +1,5 @@
 import * as THREE from '../vendor/three.js';
-import * as attractors from './attractor.js';
+import {AttractorsPrototypes} from './attractor.js';
 import * as world from './world.js';
 
 class FavouritesScreen
@@ -12,18 +12,18 @@ class FavouritesScreen
 
         btn.addEventListener('click', () =>
         {
-            this.onClick(btn);
+            this.onClick(this, btn);
         });        
     }
 
-    onClick(btn)
+    onClick(owner, btn)
     {
         btn.classList.toggle('active');        
         let toggled = btn.classList.contains('active');        
 
         if(toggled)
         {
-            this.addUI();
+            this.addUI(owner);
         }
         else
         {
@@ -31,7 +31,7 @@ class FavouritesScreen
         }
     }
 
-    addUI()
+    addUI(owner)
     {
         db.allDocs({ include_docs: true}, function(err, attractors)
         {
@@ -49,8 +49,10 @@ class FavouritesScreen
                 for(let i = 0; i < attractors["total_rows"]; i++)
                 {
                     let date = new Date(attractors["rows"][i]["doc"]["_id"]);
-                    let attractorData = JSON.parse(attractors["rows"][i]["doc"]["attractor_data"]);
+                    let attractorJson = JSON.parse(attractors["rows"][i]["doc"]["attractor_data"]);
                     let minutesStr = date.getMinutes().toString();
+                    let imgSrc = AttractorsPrototypes.get(attractorJson["type"]).getImgPath();
+                    
                     if(minutesStr.length == 1)
                     {
                         minutesStr = '0' + minutesStr;
@@ -66,7 +68,7 @@ class FavouritesScreen
         <div class="row">
           <div class="col-10">
             <div class="row">
-              <b>${attractorData["type"]}</b>
+              <b>${attractorJson["type"]}</b>
             </div>
 
             <div class="row">
@@ -75,30 +77,27 @@ class FavouritesScreen
           </div>
 
           <div class="col-2">
-            <button type="button" class="btn btn-dark btn-sm""><i class="fas fa-trash fa-2x" style="color: #881919"></i></button>
+            <button type="button" class="btn btn-dark btn-sm""><i class="fas fa-trash fa-2x" style="color: #881919" id="trash-btn-${i}"></i></button>
           </div>
 
         </div>
       </div>
 
 
-      <img src="img/henon.jpeg" class="card-img-top rounded-0" style="height: 160px; object-fit: cover;">
+      <img src="${imgSrc}" class="card-img-top rounded-0" style="height: 160px; object-fit: cover; opacity: 0.75;">
 
-      <div class="card-body">
+      <div class="card-body pt-0">
         <div class="row">
-          <div class="col-10">
-            <div class="row pb-0">
-              <h5>${attractors["rows"][i]["doc"]["name"]}</h5>
+          <div class="col-12">
+            <div class="row py-0">
+               <input type="text" class="form-control" value="${attractors["rows"][i]["doc"]["name"]}" style="background-color: transparent; border: none; color: #FFF; font-size: 20px;"></input>
             </div>
 
             <div class="row pt-0 mt-0">
-              <div style="color: rgb(192, 192, 192)">Views: 11</div>
+              <div style="color: rgb(192, 192, 192)">This attractor was viewed 11 times</div>
             </div>
           </div>
 
-          <div class="col-2">
-           <button type="button" class="btn btn-dark btn-sm"><i class="fas fa-pencil-alt"></i></button>
-          </div>
         </div>
 
         <div class="row">
@@ -110,7 +109,7 @@ class FavouritesScreen
 
     <div class="card-footer d-grid p-0 m-0">
       <div class="btn-group" role="group">
-        <button type="button" class="btn btn-light rounded-0">View</button>
+        <button type="button" class="btn btn-light rounded-0" style="background-color: rgba(220, 220, 220, 1.0); border-width: 0px;" id="view-btn-${i}">View</button>
       </div>
     </div>
 
@@ -120,7 +119,35 @@ class FavouritesScreen
 `;
                 }
 
-                htmlScreen.innerHTML = html;                
+                html += '</div> <div style="height:320px"></div>';
+                htmlScreen.innerHTML = html;
+                
+                for(let i = 0; i < attractors["total_rows"]; i++)
+                {
+                    let viewBtn = document.getElementById(`view-btn-${i}`);
+                    let trashBtn = document.getElementById(`trash-btn-${i}`);
+                    
+                    let attractorJson = JSON.parse(attractors["rows"][i]["doc"]["attractor_data"]);
+                    
+                    viewBtn.addEventListener('click', function()
+                    {
+                        owner.world.setAttractorFromJson(attractorJson, attractors["rows"][i]["doc"]["_id"]);
+                        owner.removeUI();
+                    });
+
+                    trashBtn.addEventListener('click', function()
+                    {
+                        db.get(attractors["rows"][i]["doc"]["_id"], function(err, doc)
+                        {
+                            if(!err)
+                            {
+                                db.remove(doc);
+                            }
+                        });                                                  
+
+                        owner.removeUI();
+                    });
+                }
             }
         });
         

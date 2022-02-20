@@ -73,9 +73,17 @@ class World
         likeBtn.addEventListener('click', () => { this.onLikeClicked(this); });
     }
 
-    setAttractorFromJson(json)
+    setAttractorFromJson(json, id)
     {
+        this.setAttractor(attractors.AttractorsPrototypes.get(json["type"]));
+        currentAttractor.json = json;
+        currentAttractor.id = id;
 
+        this.calculateAttractor();
+
+        let likeBtn = document.getElementById('like-btn-icon');        
+        likeBtn.classList.toggle('far', false);
+        likeBtn.classList.toggle('fas', true);
     }
     
     setAttractor(Prototype)
@@ -120,8 +128,8 @@ class World
         {
             owner.attractorGenerationEnabled = false;
             owner.calculateAttractor();
-            colormap.generateColors(THREE.MathUtils.randFloat(40, 70),
-                                    THREE.MathUtils.randFloat(40, 70),
+            colormap.generateColors(THREE.MathUtils.randFloat(60, 70),
+                                    THREE.MathUtils.randFloat(60, 70),
                                     THREE.MathUtils.randFloat(0, 360),
                                     THREE.MathUtils.randFloat(0, 360));
 

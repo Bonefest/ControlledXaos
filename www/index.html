@@ -50,11 +50,27 @@
         
         void main()
         {
-            vec3 r = (position - aabbMin) / (aabbMax - aabbMin);
-
-            particleColor.r = texture(colormapTex, vec2(r.x, 0.0)).r;
-            particleColor.g = texture(colormapTex, vec2(r.y, 0.0)).g;
-            particleColor.b = texture(colormapTex, vec2(r.z, 0.0)).b;            
+            vec3 b = aabbMax - aabbMin;
+            vec3 r = position - aabbMin;
+            float t = 0.0;
+            if(b.x > b.y && b.x > b.z)
+            {
+                t = r.x / b.x;
+            }
+            else if(b.y > b.z)
+            {
+                t = r.y / b.y;
+            }
+            else
+            {
+                t = r.z / b.z;
+            }
+            
+            particleColor.rgb = texture(colormapTex, vec2(t, 0.0)).rgb;
+            //vec3 r = (position - aabbMin) / (aabbMax - aabbMin);
+            //particleColor.r = texture(colormapTex, vec2(r.x, 0.0)).r;
+            //particleColor.g = texture(colormapTex, vec2(r.y, 0.0)).g;
+            //particleColor.b = texture(colormapTex, vec2(r.z, 0.0)).b;            
             
             vec4 camSpacePos = modelViewMatrix * vec4(position, 1.0);
             gl_PointSize = (300.0 / -camSpacePos.z);

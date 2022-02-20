@@ -83,6 +83,8 @@ class AttractorScreen
         html +=
 `
       </div>
+
+<div style="height: 360px;"></div>
     </div>
   </div>
 
