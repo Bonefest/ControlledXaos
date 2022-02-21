@@ -15,8 +15,20 @@ let renderer;
 let colormap;
 let visualizationClock;
 
-let pointsBufferSize = { BufferSize: 50000 };
-let pointsMultiplier = new THREE.Vector3(10, 10, 10);
+let worldConfig =
+{
+    lyapunovMaxRange: 100.0,
+    lyapunovMinRange: 1.0,
+    pointSizeLimit: 3,
+    searchingIterationsCount: 10000,
+
+    maxPointSize: 300.0,
+    pointsMultiplier: 10.0,
+    maxPoints: 50000,
+
+    colormapSeriesMaxRange: 20,
+    colormapSeriesMinRange: 3,
+};
 
 let currentAttractor;
 
@@ -130,7 +142,8 @@ class World
         {
             owner.attractorGenerationEnabled = false;
             owner.calculateAttractor();
-            colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(3, 20));
+            colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(worldConfig.colormapSeriesMinRange,
+                                                                          worldConfig.colormapSeriesMaxRange));
 
             screen.innerHTML = '';
         });
@@ -143,18 +156,19 @@ class World
             return;
         }
 
-        const MaxAttempts = 10000;
+        const MaxAttempts = worldConfig.searchingIterationsCount;
         
         for(let i = 0; i < 7 && owner.attractorGenerationIter < MaxAttempts; i++, owner.attractorGenerationIter++)
         {
             currentAttractor.generateWeights();
-            let L = attractors.calculateLyapunovExponent(currentAttractor);
+            let L = attractors.calculateLyapunovExponent(currentAttractor, worldConfig);
 
-            if(L > 1.0)
+            if(L > worldConfig.lyapunovMinRange && L < worldConfig.lyapunovMaxRange)
             {
                 owner.attractorGenerationEnabled = false;
                 owner.calculateAttractor();
-                colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(3, 20));                
+                colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(worldConfig.colormapSeriesMinRange,
+                                                                              worldConfig.colormapSeriesMaxRange));
 
                 break;
 
@@ -207,10 +221,12 @@ class World
         let aabbMax = new THREE.Vector3(-9999, -9999, -9999);
         
         let state = new THREE.Vector3();
-        for(let i = 0; i < pointsBufferSize.BufferSize; i++)
+        for(let i = 0; i < worldConfig.maxPoints; i++)
         {
             state = currentAttractor.generateState(state);
-            vertices.push(state.x * pointsMultiplier.x, state.y * pointsMultiplier.y, state.z * pointsMultiplier.z);
+            vertices.push(state.x * worldConfig.pointsMultiplier,
+                          state.y * worldConfig.pointsMultiplier,
+                          state.z * worldConfig.pointsMultiplier);
 
             aabbMin.x = Math.min(aabbMin.x, state.x);
             aabbMin.y = Math.min(aabbMin.y, state.y);
@@ -221,13 +237,13 @@ class World
             aabbMax.z = Math.max(aabbMax.z, state.z);
         }
 
-        aabbMin.x *= pointsMultiplier.x;
-        aabbMin.y *= pointsMultiplier.y;
-        aabbMin.z *= pointsMultiplier.z;
+        aabbMin.x *= worldConfig.pointsMultiplier;
+        aabbMin.y *= worldConfig.pointsMultiplier;
+        aabbMin.z *= worldConfig.pointsMultiplier;
 
-        aabbMax.x *= pointsMultiplier.x;
-        aabbMax.y *= pointsMultiplier.y;
-        aabbMax.z *= pointsMultiplier.z;
+        aabbMax.x *= worldConfig.pointsMultiplier;
+        aabbMax.y *= worldConfig.pointsMultiplier;
+        aabbMax.z *= worldConfig.pointsMultiplier;
 
         let aabbDiagonal = new THREE.Vector4();
         aabbDiagonal.w = aabbMin.distanceTo(aabbMax);        
@@ -314,6 +330,11 @@ class World
                 });
             }
         }
+    }
+
+    getConfig()
+    {
+        return worldConfig;
     }
 }
 
