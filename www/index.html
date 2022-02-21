@@ -44,6 +44,7 @@
         varying float particleSize;
 
         uniform sampler2D colormapTex;
+        uniform float maxPointSize;
         uniform vec3 aabbMin;
         uniform vec3 aabbMax;
         uniform vec4 aabbDiagonal;
@@ -72,7 +73,7 @@
             particleColor.rgb = texture(colormapTex, vec2(t, 0.5)).rgb;
 
             vec4 camSpacePos = modelViewMatrix * vec4(position, 1.0);
-            gl_PointSize = (150.0 / -camSpacePos.z);
+            gl_PointSize = (maxPointSize / -camSpacePos.z);
             particleSize = gl_PointSize;
             gl_Position = projectionMatrix * camSpacePos;
         }
@@ -86,11 +87,12 @@
 
         uniform sampler2D colormapTex;
         uniform float time;
+        uniform float timeSpeed;
         
         void main()
         {
             vec2 pointNDCPos = gl_PointCoord * 2.0 - 1.0;
-            float distance = clamp((1.0 - sqrt(dot(pointNDCPos, pointNDCPos))) * abs(cos(time)), 0.0, 1.0);
+            float distance = clamp((1.0 - sqrt(dot(pointNDCPos, pointNDCPos))) * abs(cos(time * timeSpeed)), 0.0, 1.0);
             gl_FragColor = vec4(particleColor, distance * distance);
         }
         

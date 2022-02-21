@@ -25,6 +25,7 @@ let worldConfig =
     maxPointSize: 300.0,
     pointsMultiplier: 10.0,
     maxPoints: 50000,
+    timeSpeed: 1,
 
     colormapSeriesMaxRange: 20,
     colormapSeriesMinRange: 3,
@@ -260,7 +261,9 @@ class World
             uniforms:
             {
                 time: { value: 0.0 },
+                timeSpeed: {value: 0.0 },
                 colormapTex: { value: colormap.getTexture() },
+                maxPointSize: { value: worldConfig.maxPointSize },
                 aabbMin: {value: aabbMin },
                 aabbMax: {value: aabbMax },
                 aabbDiagonal: {value: aabbDiagonal },
@@ -280,6 +283,8 @@ class World
         points.onBeforeRender = function(renderer, scene, camera, geometry, material, group)
         {
             material.uniforms.time.value = visualizationClock.getElapsedTime();
+            material.uniforms.timeSpeed.value = worldConfig.timeSpeed;
+            material.uniforms.maxPointSize.value = worldConfig.maxPointSize;            
         };
 
         scene.add(points);
