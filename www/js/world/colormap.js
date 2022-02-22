@@ -50,7 +50,7 @@ class Colormap
         this._updateData(colors);
     }
 
-    generateColorRGBSeriesRandom(seriesCount)
+    generateColorRGBSeriesRandom(seriesCount, randomnessParam)
     {
         let series = new Array(seriesCount * 4);
         let prevT = 0.0;
@@ -59,9 +59,14 @@ class Colormap
             series[i * 4] = THREE.MathUtils.randFloat(0, 1);
             series[i * 4 + 1] = THREE.MathUtils.randFloat(0, 1);
             series[i * 4 + 2] = THREE.MathUtils.randFloat(0, 1);
-            series[i * 4 + 3] = THREE.MathUtils.randFloat(prevT, 1);
 
-            prevT = series[i * 4 + 3];
+            let t = randomnessParam;
+            let maxVal = t * (1 - prevT) + (1 - t) * (1 / seriesCount);
+            
+            let diff = THREE.MathUtils.randFloat(0, maxVal);
+
+            prevT += diff;
+            series[i * 4 + 3] = prevT;
         }
 
         series[(seriesCount - 1) * 4 + 3] = 1.0;

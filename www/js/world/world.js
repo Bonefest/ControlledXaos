@@ -29,6 +29,7 @@ let worldConfig =
 
     colormapSeriesMaxRange: 20,
     colormapSeriesMinRange: 3,
+    colormapColorRandomness: 0.75,
 };
 
 let currentAttractor;
@@ -143,8 +144,7 @@ class World
         {
             owner.attractorGenerationEnabled = false;
             owner.calculateAttractor();
-            colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(worldConfig.colormapSeriesMinRange,
-                                                                          worldConfig.colormapSeriesMaxRange));
+            owner.generateRandomColor();
 
             screen.innerHTML = '';
         });
@@ -168,8 +168,7 @@ class World
             {
                 owner.attractorGenerationEnabled = false;
                 owner.calculateAttractor();
-                colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(worldConfig.colormapSeriesMinRange,
-                                                                              worldConfig.colormapSeriesMaxRange));
+                owner.generateRandomColor();
 
                 break;
 
@@ -337,6 +336,14 @@ class World
         }
     }
 
+    generateRandomColor()
+    {
+        colormap.generateColorRGBSeriesRandom(THREE.MathUtils.randInt(worldConfig.colormapSeriesMinRange,
+                                                                      worldConfig.colormapSeriesMaxRange),
+                                              worldConfig.colormapColorRandomness);
+        
+    }
+    
     getConfig()
     {
         return worldConfig;

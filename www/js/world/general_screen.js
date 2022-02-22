@@ -148,7 +148,56 @@ class GeneralScreen
        </div>
      </div>
 
+     <div class="row d-grid">
+       <button type="button" class="btn btn-warning" id="btn-recalculate-att">Recalculate attractor</button>
+     </div>
+
    </div>
+
+
+
+
+   <div class="card bg-dark text-white rounded-0 mt-4 px-3">
+     <h6 class="py-2"><b>Colormap parameters</b></h6>
+    
+     <label for="color-series-max-range" class="form-label">Maximal number of colors</label>
+     <div class="row g-0">
+       <div class="col-3 text-center">
+         <h6 id="color-series-max-range-label">${config.colormapSeriesMaxRange}</h6>
+       </div>
+       <div class="col-9">
+         <input type="range" class="form-range" min="3" max="32" value="${config.colormapSeriesMaxRange}" id="color-series-max-range">
+       </div>
+     </div>
+
+     <label for="color-series-min-range" class="form-label">Minimal number of colors</label>
+     <div class="row g-0">
+       <div class="col-3 text-center">
+         <h6 id="color-series-min-range-label">${config.colormapSeriesMinRange}</h6>
+       </div>
+       <div class="col-9">
+         <input type="range" class="form-range" min="3" max="32" value="${config.colormapSeriesMinRange}" id="color-series-min-range">
+       </div>
+     </div>
+
+     <label for="color-randomness" class="form-label">Color distribution randomness, %</label>
+     <div class="row g-0">
+       <div class="col-3 text-center">
+         <h6 id="color-randomness-label">${config.colormapColorRandomness * 100}</h6>
+       </div>
+       <div class="col-9">
+         <input type="range" class="form-range" min="0.0" max="100.0" value="${config.colormapColorRandomness * 100}" id="color-randomness">
+       </div>
+     </div>
+
+     <div class="row d-grid">
+       <button type="button" class="btn btn-warning" id="btn-new-color">New color</button>
+     </div>
+
+   </div>
+
+   <div style="height: 800px;"></div>
+
 </div>
 `;
         htmlScreen.innerHTML = html;
@@ -204,6 +253,33 @@ class GeneralScreen
         {
             config.timeSpeed = v.target.value;
         });        
+
+        addRangeListener('color-series-max-range', function(v)
+        {
+            config.colormapSeriesMaxRange = v.target.value;
+        });        
+
+        addRangeListener('color-series-min-range', function(v)
+        {
+            config.colormapSeriesMinRange = v.target.value;
+        });
+
+        addRangeListener('color-randomness', function(v)
+        {
+            config.colormapColorRandomness = v.target.value / 100.0;
+        });                
+
+        let recalculateAttBtn = document.getElementById('btn-recalculate-att');
+        recalculateAttBtn.addEventListener('click', function()
+        {
+            owner.world.calculateAttractor();
+        });
+        
+        let newClrBtn = document.getElementById('btn-new-color');
+        newClrBtn.addEventListener('click', function()
+        {
+            owner.world.generateRandomColor();
+        });
 
     }
 

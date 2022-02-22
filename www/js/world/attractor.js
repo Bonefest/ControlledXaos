@@ -244,9 +244,9 @@ export function calculateLyapunovExponent(attractor, config)
         state0 = attractor.generateState(state0);
     }
     
-    let state1 = state0.clone().add(new THREE.Vector3(0.001, 0.001, 0.0));
+    let state1 = state0.clone().add(new THREE.Vector3(0.00001, 0.00001, 0.0));
 
-    let d0Sep = 0.0001;
+    let d0Sep = 0.000001;
     let L = 0;
     for(let i = 0; i < CalculationSteps; i++)
     {
