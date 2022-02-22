@@ -76,7 +76,7 @@ class GeneralScreen
          <h6 id="lyapunov-min-range-label">${config.lyapunovMinRange}</h6>
        </div>
        <div class="col-9">
-         <input type="range" class="form-range" min="0.5" max="10000.0" value="${config.lyapunovMinRange}" id="lyapunov-min-range">
+         <input type="range" class="form-range" min="0.01" max="100.0" step="0.01" value="${config.lyapunovMinRange}" id="lyapunov-min-range">
        </div>
      </div>
 

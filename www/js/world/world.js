@@ -158,11 +158,12 @@ class World
         }
 
         const MaxAttempts = worldConfig.searchingIterationsCount;
+        let L;
         
         for(let i = 0; i < 7 && owner.attractorGenerationIter < MaxAttempts; i++, owner.attractorGenerationIter++)
         {
             currentAttractor.generateWeights();
-            let L = attractors.calculateLyapunovExponent(currentAttractor, worldConfig);
+            L = attractors.calculateLyapunovExponent(currentAttractor, worldConfig);
 
             if(L > worldConfig.lyapunovMinRange && L < worldConfig.lyapunovMaxRange)
             {
@@ -204,7 +205,7 @@ class World
             let title = document.getElementById('calc-title');
             if(title != null)
             {
-                title.innerHTML = `Searching for attractor (${owner.attractorGenerationIter}/${MaxAttempts})`;
+                title.innerHTML = `Searching for attractor (${owner.attractorGenerationIter}/${MaxAttempts}) L=${L}...`;
             }
         }
     }

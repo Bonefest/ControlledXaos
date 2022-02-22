@@ -141,6 +141,103 @@ class PlaneAttractor
 
 };
 
+class Periodic2Attractor
+{
+    init()
+    {
+        this.json = {};
+        this.json.type = Periodic2Attractor.getID();
+        this.json.w = new Array(39);
+    }
+
+    clear()
+    {
+
+    }
+    
+    generateWeights()
+    {
+        for(let i = 0; i < 39; i++)
+        {
+            this.json.w[i] = THREE.MathUtils.randFloat(-2.0, 2.0);
+        }
+    }
+    
+    generateState(ps)
+    {
+        return new THREE.Vector3(this.json.w[0] + this.json.w[1] * ps.x + this.json.w[2] * ps.y + this.json.w[3] * ps.z + this.json.w[4] * Math.sin(this.json.w[5] * ps.x + this.json.w[6]) + this.json.w[7] * Math.sin(this.json.w[8] * ps.y + this.json.w[9]) + this.json.w[10] * Math.sin(this.json.w[11] * ps.z + this.json.w[12]),
+                                 this.json.w[13] + this.json.w[14] * ps.x + this.json.w[15] * ps.y + this.json.w[16] * ps.z + this.json.w[17] * Math.sin(this.json.w[18] * ps.x + this.json.w[19]) + this.json.w[20] * Math.sin(this.json.w[21] * ps.y + this.json.w[22]) + this.json.w[23] * Math.sin(this.json.w[24] * ps.z + this.json.w[25]),
+                                 this.json.w[26] + this.json.w[27] * ps.x + this.json.w[28] * ps.y + this.json.w[29] * ps.z + this.json.w[30] * Math.sin(this.json.w[31] * ps.x + this.json.w[32]) + this.json.w[33] * Math.sin(this.json.w[34] * ps.y + this.json.w[35]) + this.json.w[36] * Math.sin(this.json.w[37] * ps.z + this.json.w[38]));
+
+    }
+
+    static getID()
+    {
+        return "Periodic2";
+    }
+
+    static getName() { return "Periodic2 Attractor"; }    
+
+    static getImgPath() { return "img/plane.jpeg"; }
+    
+    static getDescriptionHTML()
+    {
+        return generateTemplate(Periodic2Attractor.getImgPath(), Periodic2Attractor.getName(), "Periodic2 Attractor is a full 3D attractor based on a sin function.", Periodic2Attractor.getID(), CalculationSpeed.Fast, "3D");
+    }
+
+};
+
+class WebAttractor
+{
+    init()
+    {
+        this.json = {};
+        this.json.type = WebAttractor.getID();
+        this.json.w = new Array(6);
+    }
+
+    clear()
+    {
+
+    }
+    
+    generateWeights()
+    {
+        for(let i = 0; i < 6; i++)
+        {
+            this.json.w[i] = THREE.MathUtils.randFloat(-2.0, 2.0);
+        }
+    }
+    
+    generateState(ps)
+    {
+        const alpha = 6.28 / (13 + 10 * this.json.w[5]);
+        const common = (ps.x + this.json.w[1] * Math.sin(this.json.w[2] * ps.y + this.json.w[3]));
+        
+        return new THREE.Vector3(10 * this.json.w[0] + common * Math.cos(alpha) + ps.y * Math.sin(alpha),
+                                 10 * this.json.w[4] + common * Math.sin(alpha) + ps.y * Math.cos(alpha),
+                                 0.0);
+
+    }
+
+    static getID()
+    {
+        return "Web";
+    }
+
+    static getName() { return "Web Attractor"; }    
+
+    static getImgPath() { return "img/plane.jpeg"; }
+    
+    static getDescriptionHTML()
+    {
+        return generateTemplate(WebAttractor.getImgPath(), WebAttractor.getName(), "Web Attractor is a completely new unusual example of strange attractor.", WebAttractor.getID(), CalculationSpeed.Fast, "3D");
+    }
+
+};
+
+
+
 function createPolynomNAttractor(order)
 {
     const type = `Polynom${order}`;
@@ -243,10 +340,11 @@ export function calculateLyapunovExponent(attractor, config)
     {
         state0 = attractor.generateState(state0);
     }
-    
-    let state1 = state0.clone().add(new THREE.Vector3(0.00001, 0.00001, 0.0));
 
-    let d0Sep = 0.000001;
+    let shift = 0.001;
+    let state1 = state0.clone().add(new THREE.Vector3(shift, shift, 0.0));
+
+    let d0Sep = shift * shift;
     let L = 0;
     for(let i = 0; i < CalculationSteps; i++)
     {
@@ -255,7 +353,7 @@ export function calculateLyapunovExponent(attractor, config)
 
         const limit = config.pointSizeLimit;
         
-        if(i > 100 && (Math.abs(state0.x) > limit || Math.abs(state0.y) > limit || Math.abs(state0.z) > limit || Math.abs(state1.x) > limit || Math.abs(state1.y) > limit || Math.abs(state1.z) > limit || (L / i) < 0.0))
+        if(i > 100 && (Math.abs(state0.x) > limit || Math.abs(state0.y) > limit || Math.abs(state0.z) > limit || Math.abs(state1.x) > limit || Math.abs(state1.y) > limit || Math.abs(state1.z) > limit || (L / i) < config.lyapunovMinRange))
         {
             return -1.0;
         }
@@ -268,7 +366,11 @@ export function calculateLyapunovExponent(attractor, config)
         state0.add(sepDir);                        // Readjust first orbit, so its separation length
                                                    // is equal to previous separation
         
-        L += Math.log2(d1Sep / d0Sep);
+        let l = Math.log2(d1Sep / d0Sep);
+        if(!isNaN(l))
+        {
+            L += l;
+        }
     }
 
     return L / CalculationSteps;
@@ -277,6 +379,8 @@ export function calculateLyapunovExponent(attractor, config)
 const AttractorsPrototypes = new Map([
     [HenonAttractor.getID(), HenonAttractor],
     [PlaneAttractor.getID(), PlaneAttractor],
+    [Periodic2Attractor.getID(), Periodic2Attractor],
+    [WebAttractor.getID(), WebAttractor],
     [Polynom2Attractor.getID(), Polynom2Attractor],
     [Polynom3Attractor.getID(), Polynom3Attractor],
     [Polynom4Attractor.getID(), Polynom4Attractor],
